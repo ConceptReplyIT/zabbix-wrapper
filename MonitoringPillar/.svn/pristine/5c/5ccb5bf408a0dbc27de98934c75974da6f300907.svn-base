@@ -1,0 +1,22 @@
+##############################
+# ENVIRONMENT CONFIGURATIONS #
+# ---		INFN		---- #
+##############################
+
+label=INFN PROD CORE - Monitoring Pillar
+
+#URLs
+server_zabbix_iaas_URL=http://zabbix-iaas.infn.ponsmartcities-prisma.it/zabbix/api_jsonrpc.php
+proxy_zabbix_iaas_name=ProxyBaIaaS
+
+server_zabbix_metrics_URL=http://zabbix-metrics.infn.ponsmartcities-prisma.it/zabbix/api_jsonrpc.php
+proxy_zabbix_metrics_name=ProxyBaMetrics
+
+server_zabbix_watcher_URL=http://zabbix-watcher.infn.ponsmartcities-prisma.it/zabbix/api_jsonrpc.php
+proxy_zabbix_watcher_name=ProxyBaWatcher
+
+server_zabbix_rpc_version=2.0
+
+#Credentials
+usernameZabbixServer=admin
+pswdZabbixServer=PrismaMon2014

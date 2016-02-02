@@ -1,0 +1,61 @@
+package it.monitoringpillar.adapter.zabbix.handler;
+
+import it.monitoringpillar.adapter.zabbix.ZabbixConstant;
+import it.monitoringpillar.adapter.zabbix.clientbuilder.ZabbixAdapterClientSetter;
+import it.monitoringpillar.adapter.zabbix.exception.NotFoundZabbixException;
+import it.monitoringpillar.adapter.zabbix.exception.ZabbixException;
+import it.monitoringpillar.adapter.zabbix.handler.ZabbixFeatures.ZabbixMethods;
+import it.prisma.domain.dsl.monitoring.InfoType;
+import it.prisma.domain.dsl.monitoring.pillar.zabbix.response.ZabbixTemplateResponse;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ejb.Stateless;
+import javax.inject.Inject;
+
+@Stateless
+public class TemplateIDByName implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    @Inject
+    private ZabbixAdapterClientSetter<?> zabAdapMetrics;
+
+    public List<String> getTemplateID(String serverType, List<String> service, Boolean activeMode)
+	    throws ZabbixException {
+
+	ArrayList<ZabbixTemplateResponse> templateList = (ArrayList<ZabbixTemplateResponse>) zabAdapMetrics
+		.getTemplateService(serverType, ZabbixMethods.TEMPLATE.getzabbixMethod());
+
+	ArrayList<String> templateID = new ArrayList<String>();
+
+	String templateMode = null;
+	if (activeMode == true)
+	    templateMode = ZabbixConstant.TEMPLATE_RADIX_ACTIVE_MODE;
+	else
+	    templateMode = ZabbixConstant.TEMPLATE_RADIX_PASSIVE_MODE;
+
+	// FOR EACH TEMPLATE
+	for (int j = 0; j < templateList.size(); j++) {
+	    String templateName = templateList.get(j).getName();
+	    // ADD IAAS TEMPLATE NO MATTER WHAT.. and check Active mode if set
+	    if (templateName.equalsIgnoreCase(templateMode + "IaaS")
+		    && !(serverType.equals(InfoType.INFRASTRUCTURE.getInfoType()))) {
+		templateID.add(templateList.get(j).getTemplateid());
+	    }
+	    // FOR EACH SERVICE PASSED
+	    for (int z = 0; z < service.size(); z++) {
+
+		if (templateName.toLowerCase().equalsIgnoreCase(templateMode + service.get(z))) {
+		    templateID.add(templateList.get(j).getTemplateid());
+		}
+	    }
+	}
+	if (templateID.size() - 1 != service.size() && !(serverType.equals(InfoType.INFRASTRUCTURE.getInfoType()))) {
+	    throw new NotFoundZabbixException("Not Service Existing into Monitoring Platform at: " + serverType);
+	}
+	return templateID;
+    }
+}
