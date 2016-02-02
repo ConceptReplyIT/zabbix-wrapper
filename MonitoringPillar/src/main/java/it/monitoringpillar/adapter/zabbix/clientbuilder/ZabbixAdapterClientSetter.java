@@ -25,7 +25,6 @@ import it.prisma.domain.dsl.monitoring.pillar.zabbix.request.TriggerParamRequest
 import it.prisma.domain.dsl.monitoring.pillar.zabbix.request.Zabbix2_4ParamHost;
 import it.prisma.domain.dsl.monitoring.pillar.zabbix.request.ZabbixFilterRequest;
 import it.prisma.domain.dsl.monitoring.pillar.zabbix.request.ZabbixParamCreateHostRequest;
-import it.prisma.domain.dsl.monitoring.pillar.zabbix.request.ZabbixParamCreateProxyRequest;
 import it.prisma.domain.dsl.monitoring.pillar.zabbix.request.ZabbixParamGroupIntoHostCreateRequest;
 import it.prisma.domain.dsl.monitoring.pillar.zabbix.request.ZabbixParamHistoryRequest;
 import it.prisma.domain.dsl.monitoring.pillar.zabbix.request.ZabbixParamHostGroupRequest;
@@ -336,35 +335,6 @@ public class ZabbixAdapterClientSetter<T> extends ZabbixBase implements Serializ
 			request.setAuth(zabbixHelper.getZabbixToken(serverType));
 			request.setId(ZabbixConstant.ID);
 			return zabClient.updateProxyClient(request);
-		} catch (ZabbixClientException e) {
-			throw handleException(e);
-		}
-	}
-
-	/********************
-	 * CREATE PROXY
-	 * 
-	 * @param url
-	 * @param token
-	 * @param hostGroupNameId
-	 * @param getzabbixMethod
-	 * @throws ZabbixException
-	 */
-	public ZabbixUpdateProxyResponse createProxyService(String url, String token, String hostGroupNameId,
-			String zabbixMethod) throws ZabbixException {
-		try {
-			ZabbixAPIClient zabClient = new ZabbixAPIClient(url);
-			JSONRPCRequest<ZabbixParamCreateProxyRequest> request = new JSONRPCRequest<>();
-			ZabbixParamCreateProxyRequest paramRequest = new ZabbixParamCreateProxyRequest();
-			request.setJsonrpc(zabbixHelper.getZabbixRPCVersion());
-			request.setMethod(zabbixMethod);
-			paramRequest
-					.setHost(hostGroupNameId.replace(MonitoringConstant.WG_PREFIX, MonitoringConstant.PROXY_PREFIX));
-			paramRequest.setStatus(ZabbixConstant.PROXY_ACTIVE_PROP);
-			request.setParams(paramRequest);
-			request.setAuth(token);
-			request.setId(ZabbixConstant.ID);
-			return zabClient.createProxyClient(request);
 		} catch (ZabbixClientException e) {
 			throw handleException(e);
 		}

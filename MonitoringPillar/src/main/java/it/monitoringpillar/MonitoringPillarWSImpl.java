@@ -3,19 +3,16 @@ package it.monitoringpillar;
 import it.monitoringpillar.adapter.DelegatorAdapter;
 import it.monitoringpillar.adapter.zabbix.handler.ZabbixFeatures.ServerType;
 import it.monitoringpillar.config.ConfigPillar;
-import it.monitoringpillar.config.Configuration;
 import it.monitoringpillar.exception.IllegalArgumentMonitoringException;
 import it.monitoringpillar.exception.MonitoringException;
 import it.monitoringpillar.exception.NotFoundMonitoringException;
 import it.monitoringpillar.wrapper.WrapperProvider;
 import it.prisma.domain.dsl.monitoring.Adapter;
 import it.prisma.domain.dsl.monitoring.InfoType;
-import it.prisma.domain.dsl.monitoring.Zone;
 import it.prisma.domain.dsl.monitoring.businesslayer.paas.request.HostMonitoringRequest;
 import it.prisma.domain.dsl.monitoring.pillar.protocol.MonitoringResponse;
 import it.prisma.domain.dsl.monitoring.pillar.protocol.PillarAdapter;
 import it.prisma.domain.dsl.monitoring.pillar.protocol.PillarServerType;
-import it.prisma.domain.dsl.monitoring.pillar.protocol.PillarZone;
 import it.prisma.domain.dsl.monitoring.pillar.wrapper.MonitPillarEventResponse;
 import it.prisma.domain.dsl.monitoring.pillar.wrapper.iaas.WrappedIaasHealthByTrigger;
 import it.prisma.domain.dsl.monitoring.pillar.wrapper.paas.FilterTimeRequest;
@@ -63,9 +60,6 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 
 	@Inject
 	private WrapperProvider<?> wrapper;
-
-	@Inject
-	private Configuration config;
 
 	/**
 	 * 
@@ -136,36 +130,18 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 				.build();
 	}
 
-	/************************
-	 * List of ZONES
-	 * 
-	 * @param adapterType
-	 * @return
-	 * @throws IllegalArgumentMonitoringException
-	 * @throws NotFoundMonitoringException
-	 */
-	@Override
-	public Response listAllZones(String adapterType) throws IllegalArgumentMonitoringException,
-			NotFoundMonitoringException {
-		String message = "GET: <url>/monitoring/adapters/" + adapterType + "/zones";
-		getLog(message);
-		delegateAdapt.getAdapter(adapterType);
-		return MonitoringResponse.status(Status.OK, new PillarZone().withZones(Zone.getAllZone())).build().build();
-	}
-
-	/*******************************
-	 * GET LIST OF SERVERS PER ZONE
+	/*************
+	 * GET SERVERS
 	 * 
 	 * @throws IllegalArgumentMonitoringException
 	 * @throws NotFoundMonitoringException
 	 ************/
 	@Override
-	public Response listAllServerType(String adapterType, String zone) throws IllegalArgumentMonitoringException,
+	public Response listAllServerType(String adapterType) throws IllegalArgumentMonitoringException,
 			NotFoundMonitoringException {
-		String message = "GET: <url>/monitoring/adapters/" + adapterType + "/zones/" + zone;
+		String message = "GET: <url>/monitoring/adapters/" + adapterType + "/types";
 		getLog(message);
 		delegateAdapt.getAdapter(adapterType);
-		checkZone(zone);
 		return MonitoringResponse.status(Status.OK, new PillarServerType().withServers(ServerType.getAllServer()))
 				.build().build();
 	}
@@ -177,7 +153,7 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 * @throws
 	 *****************************/
 	@Override
-	public Response getGroupList(String adapterType, String zoneType, String serverType) throws MonitoringException {
+	public Response getGroupList(String adapterType, String serverType) throws MonitoringException {
 		LOG.info("GET: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups");
 		MonitoringWrappedResponsePaasGroups wrappedGroup = delegateAdapt.getAdapter(adapterType).getGroupsInfoWrapped(
 				serverType);
@@ -185,8 +161,7 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 		return MonitoringResponse.status(Status.OK, wrappedGroup).build().build();
 	}
 
-	public Response getHostList(String adapterType, String zoneType, String serverType, String groupName)
-			throws MonitoringException {
+	public Response getHostList(String adapterType, String serverType, String groupName) throws MonitoringException {
 		String message = "GET: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/"
 				+ groupName;
 		getLog(message);
@@ -201,8 +176,8 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 * UPDATE HOSTGROUP
 	 ******************/
 	@Override
-	public Response updateGroup(String adapterType, String zoneType, String serverType, String groupName,
-			UpdateGroupName newGroupName) throws MonitoringException {
+	public Response updateGroup(String adapterType, String serverType, String groupName, UpdateGroupName newGroupName)
+			throws MonitoringException {
 		String message = "POST: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/"
 				+ groupName + " BODY: {newHostGroupName: newGroupName}";
 		getLog(message);
@@ -228,8 +203,7 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 * @throws Exception
 	 */
 	@Override
-	public Response createGroup(String adapterType, String zoneType, String serverType, String groupName)
-			throws MonitoringException {
+	public Response createGroup(String adapterType, String serverType, String groupName) throws MonitoringException {
 		String message = "PUT: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/"
 				+ groupName;
 		getLog(message);
@@ -247,8 +221,7 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 * @throws Exception
 	 */
 	@Override
-	public Response deleteGroup(String adapterType, String zoneType, String serverType, String groupName)
-			throws MonitoringException {
+	public Response deleteGroup(String adapterType, String serverType, String groupName) throws MonitoringException {
 		String message = "DELETE: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/"
 				+ groupName;
 		getLog(message);
@@ -266,8 +239,8 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 * @throws Exception
 	 */
 	@Override
-	public Response createHost(String adapterType, String zoneType, String serverType, String groupName,
-			String hostName, HostMonitoringRequest hostMonitoringRequest) throws MonitoringException {
+	public Response createHost(String adapterType, String serverType, String groupName, String hostName,
+			HostMonitoringRequest hostMonitoringRequest) throws MonitoringException {
 		String message = "PUT: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/"
 				+ groupName + "/hosts/" + hostName + " BODY: { {ip: " + hostMonitoringRequest.ip + "}, "
 				+ "{serviceCategory: " + hostMonitoringRequest.serviceCategory + "}, " + "{serviceId: "
@@ -294,7 +267,7 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 * @throws Exception
 	 */
 	@Override
-	public Response deleteHost(String adapterType, String zoneType, String serverType, String groupName, String hostName)
+	public Response deleteHost(String adapterType, String serverType, String groupName, String hostName)
 			throws MonitoringException {
 		String message = "DELETE: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/"
 				+ groupName + "/hosts/" + hostName;
@@ -317,8 +290,7 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 * specific testbed, zabbix server (in this case zabbic iaas) and adapter.
 	 */
 	@Override
-	public Response getGroupInfo(String adapterType, String zoneType, String serverType, String group)
-			throws MonitoringException {
+	public Response getGroupInfo(String adapterType, String serverType, String group) throws MonitoringException {
 		String message = "GET: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/" + group;
 		getLog(message);
 		return MonitoringResponse.status(Status.OK, wrapper.getWrapperIaaSPaaS(adapterType, serverType, group, null))
@@ -330,7 +302,7 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 * GET platform Info by GROUP and HOSTNAMES
 	 * *********************************************/
 	@Override
-	public Response getHostInfo(String adapterType, String zoneType, String serverType, String group, String host)
+	public Response getHostInfo(String adapterType, String serverType, String group, String host)
 			throws MonitoringException {
 		String message = "GET: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/" + group
 				+ "/hosts/" + host;
@@ -355,8 +327,8 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 * @return
 	 ************************************************/
 	@Override
-	public Response getHost(String adapterType, String zoneType, String serverType, String group, Boolean thresholds,
-			String serviceId) throws MonitoringException {
+	public Response getHost(String adapterType, String serverType, String group, Boolean thresholds, String serviceId)
+			throws MonitoringException {
 		String message = "GET: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/" + group
 				+ "/hosts" + "?service-id=" + serviceId + " OR " + "?thresholds=" + thresholds;
 		getLog(message);
@@ -376,8 +348,8 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 *****************************************************/
 
 	@Override
-	public Response getThresholdsByHost(String adapterType, String zoneType, String serverType, String group,
-			String host) throws MonitoringException {
+	public Response getThresholdsByHost(String adapterType, String serverType, String group, String host)
+			throws MonitoringException {
 		String message = "GET: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/" + group
 				+ "/hosts/" + host + "/thresholds";
 		getLog(message);
@@ -396,7 +368,7 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 * They can be filtered by period of time as much as the history
 	 */
 	@Override
-	public Response getEvents(String adapterType, String zoneType, String serverType, String group, String host)
+	public Response getEvents(String adapterType, String serverType, String group, String host)
 			throws MonitoringException {
 		String message = "GET: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/" + group
 				+ "/hosts/" + host + "/events";
@@ -423,8 +395,8 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 * @return the wrapped Zabbix APIs describing
 	 */
 	@Override
-	public Response getFilteredEvents(String adapterType, String zoneType, String serverType, String group,
-			String host, FilterTimeRequest requestTime) throws MonitoringException {
+	public Response getFilteredEvents(String adapterType, String serverType, String group, String host,
+			FilterTimeRequest requestTime) throws MonitoringException {
 
 		String message = "POST: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/" + group
 				+ "/hosts/" + host + "/events" + "BODY: {" + "dateFrom: {year: " + requestTime.getDateFrom().getYear()
@@ -444,18 +416,6 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	/***********************************************************************
 	 * PaaS
 	 ***********************************************************************/
-
-	/*************************************************
-	 * GET LIST OF METRICS ASSOCIATED A sPECIFIC HOST
-	 * **********************************************
-	 */
-	@Override
-	public Response getMetricList(String adapterType, String zone, String type, String group, String host)
-			throws MonitoringException {
-		// TODO Auto-generated method stub
-
-		return null;
-	}
 
 	/*********************************
 	 * SPECIFIC METRIC REQUESTED
@@ -484,8 +444,8 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 */
 
 	@Override
-	public Response getMetric(String adapterType, String zoneType, String serverType, String group, String host,
-			String metric) throws MonitoringException {
+	public Response getMetric(String adapterType, String serverType, String group, String host, String metric)
+			throws MonitoringException {
 		String message = "GET: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/" + group
 				+ "/hosts/" + host + "/metrics/" + metric;
 		getLog(message);
@@ -516,8 +476,8 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 */
 
 	@Override
-	public Response getHistory(String adapterType, String zoneType, String serverType, String group, String host,
-			String metric) throws MonitoringException {
+	public Response getHistory(String adapterType, String serverType, String group, String host, String metric)
+			throws MonitoringException {
 		String message = "GET: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/" + group
 				+ "/hosts/" + host + "/metrics/" + metric + "/history/";
 		getLog(message);
@@ -564,7 +524,7 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 */
 
 	@Override
-	public Response getHistoryByTime(String adapterType, String zoneType,
+	public Response getHistoryByTime(String adapterType,
 	// String host,
 			String serverType, String group, String host, String metric, FilterTimeRequest requestTime)
 			throws MonitoringException {
@@ -610,8 +570,8 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 * HISTORY BY SERVICEID
 	 ***********************/
 	@Override
-	public Response getHistoryByServiceandTime(String adapterType, String zoneType, String serverType, String group,
-			Long serviceId, String metric, FilterTimeRequest requestTime) throws MonitoringException {
+	public Response getHistoryByServiceandTime(String adapterType, String serverType, String group, Long serviceId,
+			String metric, FilterTimeRequest requestTime) throws MonitoringException {
 
 		String message = "POST: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/" + group
 				+ "/services/" + serviceId + "/history/" + "BODY: {" + "dateFrom: {year: "
@@ -650,8 +610,8 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 */
 
 	@Override
-	public Response getDisableHost(String adapterType, String zoneType, String serverType, String group,
-			String hostName, String update) throws MonitoringException {
+	public Response getDisableHost(String adapterType, String serverType, String group, String hostName, String update)
+			throws MonitoringException {
 		String message = "GET: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/" + group
 				+ "/hosts/" + hostName + "?update=" + update;
 		getLog(message);
@@ -665,8 +625,8 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 * DISABLE METRIC
 	 *****************/
 	@Override
-	public Response getDisableMetric(String adapterType, String zoneType, String serverType, String group,
-			String hostName, String metric, String update) throws MonitoringException {
+	public Response getDisableMetric(String adapterType, String serverType, String group, String hostName,
+			String metric, String update) throws MonitoringException {
 		String message = "GET: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/" + group
 				+ "/hosts/" + hostName + "/metrics/" + metric + "?update=" + update;
 		getLog(message);
@@ -692,12 +652,6 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 		} else {
 			return true;
 		}
-	}
-
-	// Method for getting the right zone and making sure the right one has been
-	// passed via API
-	private Boolean checkZone(String zone) {
-		return config.loadMonitoringPropertiesFileAndZoneProperties(zone);
 	}
 
 }

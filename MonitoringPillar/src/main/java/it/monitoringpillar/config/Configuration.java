@@ -34,8 +34,6 @@ public class Configuration {
 
 	private Properties macroProperties;
 
-	private Properties zoneProperties;
-
 	public final String varResourceProfilesBasePath = PathHelper
 			.getResourcesPath(ResourceType.CONFIG_ENV_VARIABLE_PROPERTIES_PROFILES);
 
@@ -117,42 +115,9 @@ public class Configuration {
 	}
 
 	/**
-	 * Load properties and Check for Zones
-	 */
-	public boolean loadMonitoringPropertiesFileAndZoneProperties(String zone) {
-
-		boolean propertyZoneFound = false;
-		try (InputStream in = Configuration.class.getClassLoader().getResourceAsStream(
-				ConfigProperties.MONITORING_PROPERTY_FILE)) {
-
-			monitoringProperties = new Properties();
-			monitoringProperties.load(in);
-
-			for (Entry<Object, Object> item : monitoringProperties.entrySet()) {
-
-				if (!getForcedEnvironment().isEmpty() && zone.equalsIgnoreCase(item.getValue().toString())
-						&& zone.equalsIgnoreCase(getForcedEnvironment()))
-					propertyZoneFound = true;
-				else if (getForcedEnvironment().isEmpty() && zone.equalsIgnoreCase(item.getValue().toString()))
-					propertyZoneFound = true;
-			}
-			if (!getForcedEnvironment().isEmpty() && !propertyZoneFound) {
-				throw new Error(
-						"ForceEnvironment Property does not match with one of the Zones listed in monitoring.properties file: "
-								+ "either check if there is any mistype error or add one or both parameters by paying attention they match with each other");
-			}
-
-		} catch (Exception e) {
-			throw new Error("Cannot load " + ConfigProperties.MONITORING_PROPERTY_FILE, e);
-		}
-		LOG.info("Found Zone passed: " + propertyZoneFound);
-		return propertyZoneFound;
-	}
-
-	/**
 	 * Load properties and Check for Ceilometer Metrics
 	 */
-	public boolean loadMonitoringPropertiesFileAndCheckCeilometerProperties(String ceilometerMetric) {
+	public boolean loadMonitoringPropertiesFileAndCheckCeilometerPrperties(String ceilometerMetric) {
 
 		boolean propertyCeilometerMetricFound = false;
 		try (InputStream in = Configuration.class.getClassLoader().getResourceAsStream(
@@ -305,10 +270,6 @@ public class Configuration {
 		return Boolean.valueOf(monitoringProperties.getProperty(ConfigProperties.PROXY_CONF));
 	}
 
-	public boolean isDistributedArchitecuterImplementened() {
-		return Boolean.valueOf(monitoringProperties.getProperty(ConfigProperties.DISTRIB_ARCH));
-	}
-
 	public boolean isCeilometerScriptUsed() {
 		return Boolean.valueOf(monitoringProperties.getProperty(ConfigProperties.CEILOMETER_SCRIPT));
 	}
@@ -318,30 +279,7 @@ public class Configuration {
 	}
 
 	public String getForcedEnvironment() {
-
 		return monitoringProperties.getProperty(ConfigProperties.FORCE_ENVIRONMENT);
-
-	}
-
-	private String getZoneName(String zone) {
-
-		try (InputStream in = Configuration.class.getClassLoader().getResourceAsStream(
-				ConfigProperties.MONITORING_PROPERTY_FILE)) {
-
-			zoneProperties = new Properties();
-			zoneProperties.load(in);
-
-			for (Entry<Object, Object> item : macroProperties.entrySet()) {
-				if (zone.equals(item.getKey())) {
-					return item.getValue().toString();
-				}
-			}
-			throw new Error("No ZONE Contained into Property file or does not match with the listed one");
-
-		} catch (IOException e) {
-			LOG.error("ERROR: Cannot load [" + ConfigProperties.MONITORING_ENVIRONMENT_FILE + "], " + e.getMessage());
-			throw new Error("Cannot load " + ConfigProperties.MONITORING_ENVIRONMENT_FILE);
-		}
 	}
 
 	public static class ConfigProperties {
@@ -363,7 +301,6 @@ public class Configuration {
 		public final static String FORCE_ENVIRONMENT = "force_environment";
 		public final static String WEB_SERVICE_DEBUG = "web_service_debug";
 		public final static String PROXY_CONF = "proxy_configuration";
-		public final static String DISTRIB_ARCH = "distributed_architecture_implemented";
 
 		// The current environment
 		public static String CURRENT_ENVIRONMENT;
@@ -401,5 +338,4 @@ public class Configuration {
 		public final static String AGGREGATED_DISK = "aggrDISK";
 
 	}
-
 }

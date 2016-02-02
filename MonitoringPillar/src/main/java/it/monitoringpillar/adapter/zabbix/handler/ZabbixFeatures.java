@@ -10,8 +10,7 @@ public class ZabbixFeatures {
 				"hostgroup.update"), GROUPDELETE("hostgroup.delete"), HOST("host.get"), HOSTGROUP("hostgroup.get"), TEMPLATE(
 				"template.get"), INTERFACE("hostinterface.get"), METRIC("item.get"), TRIGGER("trigger.get"), HISTORY(
 				"history.get"), EVENT("event.get"), MASSUPDATE("host.massupdate"), HOSTUPDATE("host.update"), ITEMUPDATE(
-				"item.update"), TREND("trend.get"), GETPROXY("proxy.get"), CREATEPROXY("proxy.create"), UPDATEPROXY(
-				"proxy.update");
+				"item.update"), TREND("trend.get"), GETPROXY("proxy.get"), UPDATEPROXY("proxy.update");
 
 		private ZabbixMethods(String zabbixMethod) {
 			this.zabbixMethod = zabbixMethod;

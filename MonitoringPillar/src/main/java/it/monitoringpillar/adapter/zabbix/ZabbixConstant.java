@@ -24,8 +24,6 @@ public class ZabbixConstant {
 	public static final String TEMPLATE_RADIX_PASSIVE_MODE = "Template";
 	public static final String TEMPLATE_AGGREGATOR = "TemplateAggregator";
 
-	public static final String PROXY_ACTIVE_PROP = "5";
-
 	public static final String IAAS = "IaaS";
 
 	public static final Integer HISTORY_90_DAYS = 12960;

@@ -87,7 +87,7 @@ public interface MonitoringTarget {
 			String history, FilterTimeRequest requestTime) throws MonitoringException;
 
 	/***
-	 * GET Triggers from IAAS Platform
+	 * GET Triggers form IAAS Platform
 	 * 
 	 * @return
 	 * @throws Exception

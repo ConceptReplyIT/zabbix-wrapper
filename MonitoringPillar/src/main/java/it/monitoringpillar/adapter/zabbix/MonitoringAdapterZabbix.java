@@ -176,7 +176,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
 	 * @throws ZabbixAPIErrorException
 	 */
 	@Override
-	public void creationMonitoredHostGroup(String hostGroupNameId) throws MonitoringException {
+	public void creationMonitoredHostGroup(String hostGroupName) throws MonitoringException {
 
 		try {
 
@@ -185,8 +185,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
 			String token = zabbixHelper.getZabbixToken(InfoType.SERVICE.getInfoType());
 			boolean isDuplicate = false;
 			try {
-				checkProxy4DistrituedArchitecture(url, token, hostGroupNameId);
-				zabAdapClientSetter.createHostGroupService(url, token, hostGroupNameId,
+				zabAdapClientSetter.createHostGroupService(url, token, hostGroupName,
 						ZabbixMethods.HOSTGROUPCREATE.getzabbixMethod());
 			} catch (DuplicateResourceZabbixException e) {
 				// If the group already exists it keeps verifying on other
@@ -198,8 +197,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
 			url = zabbixHelper.getZabbixURL(InfoType.WATCHER.getInfoType());
 			token = zabbixHelper.getZabbixToken(InfoType.WATCHER.getInfoType());
 			try {
-				checkProxy4DistrituedArchitecture(url, token, hostGroupNameId);
-				zabAdapClientSetter.createHostGroupService(url, token, hostGroupNameId,
+				zabAdapClientSetter.createHostGroupService(url, token, hostGroupName,
 						ZabbixMethods.HOSTGROUPCREATE.getzabbixMethod());
 			} catch (DuplicateResourceZabbixException e) {
 				// Se il gruppo esiste già faccio comunque una verifica sugli
@@ -211,8 +209,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
 			url = zabbixHelper.getZabbixURL(InfoType.INFRASTRUCTURE.getInfoType());
 			token = zabbixHelper.getZabbixToken(InfoType.INFRASTRUCTURE.getInfoType());
 			try {
-				checkProxy4DistrituedArchitecture(url, token, hostGroupNameId);
-				zabAdapClientSetter.createHostGroupService(url, token, hostGroupNameId,
+				zabAdapClientSetter.createHostGroupService(url, token, hostGroupName,
 						ZabbixMethods.HOSTGROUPCREATE.getzabbixMethod());
 			} catch (DuplicateResourceZabbixException e) {
 				// If the group already exists I do verify it anyway on other
@@ -221,32 +218,11 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
 			}
 
 			if (isDuplicate) {
-				throw new DuplicateResourceMonitoringException("Group [" + hostGroupNameId + "] already exists.");
+				throw new DuplicateResourceMonitoringException("Group [" + hostGroupName + "] already exists.");
 			}
 		} catch (ZabbixException e) {
 			throw handleException(e);
 		}
-	}
-
-	/*****************
-	 * Method for checking whether distributed Architecture is implemented. In
-	 * this case, when creating a group, becomes important creating a proxy
-	 * whose Id is the same as the Workgroup's (tenant in Infrastructure), in
-	 * order to have an automatic mapping into monitoring platforms product:
-	 * wg's ID <--> proxy's ID
-	 * 
-	 * @param url
-	 * @param token
-	 * @param hostGroupNameId
-	 * @throws ZabbixException
-	 */
-	private void checkProxy4DistrituedArchitecture(String url, String token, String hostGroupNameId)
-			throws ZabbixException {
-
-		if (config.isProxyEnabled() && config.isDistributedArchitecuterImplementened())
-			zabAdapClientSetter.createProxyService(url, token, hostGroupNameId,
-					ZabbixMethods.CREATEPROXY.getzabbixMethod());
-
 	}
 
 	/*********************************
@@ -703,5 +679,4 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
 		}
 
 	}
-
 }
