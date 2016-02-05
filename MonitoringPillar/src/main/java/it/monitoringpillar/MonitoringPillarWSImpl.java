@@ -3,6 +3,7 @@ package it.monitoringpillar;
 import it.monitoringpillar.adapter.DelegatorAdapter;
 import it.monitoringpillar.adapter.zabbix.handler.ZabbixFeatures.ServerType;
 import it.monitoringpillar.config.ConfigPillar;
+import it.monitoringpillar.config.Configuration;
 import it.monitoringpillar.exception.IllegalArgumentMonitoringException;
 import it.monitoringpillar.exception.MonitoringException;
 import it.monitoringpillar.exception.NotFoundMonitoringException;
@@ -33,6 +34,7 @@ import java.util.Date;
 
 import javax.inject.Inject;
 import javax.interceptor.Interceptors;
+import javax.naming.NameNotFoundException;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
@@ -60,6 +62,9 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 
 	@Inject
 	private WrapperProvider<?> wrapper;
+
+	@Inject
+	private Configuration config;
 
 	/**
 	 * 
@@ -130,8 +135,8 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 				.build();
 	}
 
-	/*************
-	 * GET SERVERS
+	/*******************************
+	 * GET LIST OF SERVERS
 	 * 
 	 * @throws IllegalArgumentMonitoringException
 	 * @throws NotFoundMonitoringException
@@ -139,7 +144,7 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	@Override
 	public Response listAllServerType(String adapterType) throws IllegalArgumentMonitoringException,
 			NotFoundMonitoringException {
-		String message = "GET: <url>/monitoring/adapters/" + adapterType + "/types";
+		String message = "GET: <url>/monitoring/adapters/" + adapterType;
 		getLog(message);
 		delegateAdapt.getAdapter(adapterType);
 		return MonitoringResponse.status(Status.OK, new PillarServerType().withServers(ServerType.getAllServer()))
@@ -184,7 +189,6 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 
 		delegateAdapt.getAdapter(adapterType).updateMonitoredHostGroup(serverType, groupName, newGroupName);
 		return MonitoringResponse.status(Status.ACCEPTED, newGroupName.getNewHostGroupName()).build().build();
-
 	}
 
 	/********************************************************************************************
@@ -236,11 +240,12 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	 * @param adapterType
 	 * @param hostMonitoringRequest
 	 * @return
+	 * @throws NameNotFoundException
 	 * @throws Exception
 	 */
 	@Override
 	public Response createHost(String adapterType, String serverType, String groupName, String hostName,
-			HostMonitoringRequest hostMonitoringRequest) throws MonitoringException {
+			HostMonitoringRequest hostMonitoringRequest) throws MonitoringException, NameNotFoundException {
 		String message = "PUT: <url>/monitoring/adapters/" + adapterType + "/types/" + serverType + "/groups/"
 				+ groupName + "/hosts/" + hostName + " BODY: { {ip: " + hostMonitoringRequest.ip + "}, "
 				+ "{serviceCategory: " + hostMonitoringRequest.serviceCategory + "}, " + "{serviceId: "
@@ -416,6 +421,17 @@ public class MonitoringPillarWSImpl implements MonitoringPillarWS {
 	/***********************************************************************
 	 * PaaS
 	 ***********************************************************************/
+
+	/*************************************************
+	 * GET LIST OF METRICS ASSOCIATED A sPECIFIC HOST
+	 * **********************************************
+	 */
+	@Override
+	public Response getMetricList(String adapterType, String type, String group, String host)
+			throws MonitoringException {
+		// TODO Auto-generated method stub
+		return null;
+	}
 
 	/*********************************
 	 * SPECIFIC METRIC REQUESTED

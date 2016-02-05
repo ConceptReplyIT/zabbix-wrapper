@@ -14,6 +14,9 @@ import it.prisma.utils.web.ws.rest.apiclients.zabbix.exception.ZabbixClientExcep
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -44,15 +47,19 @@ public class ZabbixHelperBean extends ZabbixBase implements Serializable {
 
 	private ConcurrentMap<InfoType, String> tokens;
 
-	private ConcurrentMap<InfoType, String> proxyIds;
+	private ConcurrentMap<InfoType, List<String>> proxyIdMap;
+
+	private ConcurrentMap<InfoType, List<String>> proxyNameMap;
+
+	private ConcurrentMap<InfoType, List<Map<String, String>>> proxyMap;
 
 	@PostConstruct
 	private void init() throws ZabbixException, NameNotFoundException {
 		tokens = new ConcurrentHashMap<InfoType, String>();
 		getAllTokens();
-		proxyIds = new ConcurrentHashMap<InfoType, String>();
+		proxyMap = new ConcurrentHashMap<InfoType, List<Map<String, String>>>();
 		if (config.isProxyEnabled())
-			getAllProxyIds();
+			getProxyMap();
 	}
 
 	@Schedule(hour = "*", persistent = false)
@@ -71,10 +78,22 @@ public class ZabbixHelperBean extends ZabbixBase implements Serializable {
 		tokens.put(InfoType.WATCHER, getZabbixToken(InfoType.WATCHER.getInfoType()));
 	}
 
-	public void getAllProxyIds() throws ZabbixException, NameNotFoundException {
-		proxyIds.put(InfoType.INFRASTRUCTURE, getProxyId(InfoType.INFRASTRUCTURE));
-		proxyIds.put(InfoType.SERVICE, getProxyId(InfoType.SERVICE));
-		proxyIds.put(InfoType.WATCHER, getProxyId(InfoType.WATCHER));
+	void getAllProxyIds() throws ZabbixException, NameNotFoundException {
+		proxyIdMap.put(InfoType.INFRASTRUCTURE, getProxyId(InfoType.INFRASTRUCTURE));
+		proxyIdMap.put(InfoType.SERVICE, getProxyId(InfoType.SERVICE));
+		proxyIdMap.put(InfoType.WATCHER, getProxyId(InfoType.WATCHER));
+	}
+
+	public void getAllProxyNames() throws ZabbixException, NameNotFoundException {
+		proxyNameMap.put(InfoType.INFRASTRUCTURE, getProxyName(InfoType.INFRASTRUCTURE));
+		proxyNameMap.put(InfoType.SERVICE, getProxyName(InfoType.SERVICE));
+		proxyNameMap.put(InfoType.WATCHER, getProxyName(InfoType.WATCHER));
+	}
+
+	public void getProxyMap() throws ZabbixException, NameNotFoundException {
+		proxyMap.put(InfoType.INFRASTRUCTURE, getProxy(InfoType.INFRASTRUCTURE));
+		proxyMap.put(InfoType.SERVICE, getProxy(InfoType.SERVICE));
+		proxyMap.put(InfoType.WATCHER, getProxy(InfoType.WATCHER));
 	}
 
 	public String getZabbixURL(String serverType) throws IllegalArgumentZabbixException {
@@ -110,9 +129,11 @@ public class ZabbixHelperBean extends ZabbixBase implements Serializable {
 		return config.getZabbixRPCVersion();
 	}
 
-	public String getProxyId(InfoType proxyType) throws ZabbixException, NameNotFoundException {
+	@Deprecated
+	public List<String> getProxyId(InfoType proxyType) throws ZabbixException, NameNotFoundException {
 
 		String proxyId = null;
+		List<String> proxyIds = new ArrayList<>();
 
 		if (config.isProxyEnabled()) {
 			try {
@@ -129,22 +150,116 @@ public class ZabbixHelperBean extends ZabbixBase implements Serializable {
 				request.setId(ZabbixConstant.ID);
 				ArrayList<ZabbixProxyInfoResponse> proxyResponses = zabClient.getProxyInfoClient(request);
 				for (ZabbixProxyInfoResponse proxyResponse : proxyResponses) {
-					if (proxyResponse.getHost().equalsIgnoreCase(config.getZabbixProxyName(proxyType))) {
-						proxyId = proxyResponse.getProxyid();
-						break;
-					}
+					proxyId = proxyResponse.getProxyid();
+					proxyIds.add(proxyId);
 				}
-				if (proxyId == null)
-					throw new NameNotFoundException("Wrong ProxyName inserted: not Existing in Properties file");
+				if (proxyIds.isEmpty() && config.isProxyEnabled())
+					throw new NameNotFoundException(
+							"No Proxies present into monitoring platforms: be sure to configure it properly or set proxy_configuration=false in monitoring.properties file ");
 			} catch (ZabbixClientException e) {
 				throw handleException(e);
 			}
 		}
-		return proxyId;
+		return proxyIds;
 	}
 
-	public String getStoredProxyId(InfoType proxyType) {
-		return proxyIds.get(proxyType);
+	/**
+	 * Method for returning the list of proxy names set to zabbix platform
+	 *
+	 * @param proxyType
+	 * @return proxy names
+	 * @throws ZabbixException
+	 * @throws NameNotFoundException
+	 */
+	@Deprecated
+	public List<String> getProxyName(InfoType proxyType) throws ZabbixException, NameNotFoundException {
+
+		String proxyName = null;
+		List<String> proxyNames = new ArrayList<>();
+
+		if (config.isProxyEnabled()) {
+			try {
+				ZabbixAPIClient zabClient = new ZabbixAPIClient(getZabbixURL(proxyType.toString()));
+				JSONRPCRequest<ZabbixProxyInfoRequest> request = new JSONRPCRequest<>();
+				ZabbixProxyInfoRequest paramRequest = new ZabbixProxyInfoRequest();
+				request.setJsonrpc(getZabbixRPCVersion());
+				request.setMethod(ZabbixMethods.GETPROXY.getzabbixMethod());
+
+				paramRequest.setOutput(ZabbixConstant.EXTEND);
+				paramRequest.setSelectInterface(ZabbixConstant.EXTEND);
+				request.setParams(paramRequest);
+				request.setAuth(getZabbixToken(proxyType.toString()));
+				request.setId(ZabbixConstant.ID);
+				ArrayList<ZabbixProxyInfoResponse> proxyResponses = zabClient.getProxyInfoClient(request);
+				for (ZabbixProxyInfoResponse proxyResponse : proxyResponses) {
+					proxyName = proxyResponse.getHost();
+					proxyNames.add(proxyName);
+				}
+				if (proxyNames.isEmpty() && config.isProxyEnabled())
+					throw new NameNotFoundException(
+							"No Proxies present into monitoring platforms: be sure to configure it properly or set proxy_configuration=false in monitoring.properties file ");
+			} catch (ZabbixClientException e) {
+				throw handleException(e);
+			}
+		}
+		return proxyNames;
+	}
+
+	/**
+	 * This method returns for every platform all the proxy's info
+	 * 
+	 * @param proxyType
+	 * @return proxies' info
+	 * @throws ZabbixException
+	 * @throws NameNotFoundException
+	 */
+	public List<Map<String, String>> getProxy(InfoType proxyType) throws ZabbixException, NameNotFoundException {
+
+		String proxyName = null;
+		String proxyId = null;
+		Map<String, String> proxyMap = new HashMap<>();
+		List<Map<String, String>> proxies = new ArrayList<Map<String, String>>();
+
+		if (config.isProxyEnabled()) {
+			try {
+				ZabbixAPIClient zabClient = new ZabbixAPIClient(getZabbixURL(proxyType.toString()));
+				JSONRPCRequest<ZabbixProxyInfoRequest> request = new JSONRPCRequest<>();
+				ZabbixProxyInfoRequest paramRequest = new ZabbixProxyInfoRequest();
+				request.setJsonrpc(getZabbixRPCVersion());
+				request.setMethod(ZabbixMethods.GETPROXY.getzabbixMethod());
+
+				paramRequest.setOutput(ZabbixConstant.EXTEND);
+				paramRequest.setSelectInterface(ZabbixConstant.EXTEND);
+				request.setParams(paramRequest);
+				request.setAuth(getZabbixToken(proxyType.toString()));
+				request.setId(ZabbixConstant.ID);
+				ArrayList<ZabbixProxyInfoResponse> proxyResponses = zabClient.getProxyInfoClient(request);
+				for (ZabbixProxyInfoResponse proxyResponse : proxyResponses) {
+					proxyName = proxyResponse.getHost();
+					proxyId = proxyResponse.getProxyid();
+					proxyMap.put(proxyName, proxyId);
+					proxies.add(proxyMap);
+				}
+				if (proxies.isEmpty() && config.isProxyEnabled())
+					throw new NameNotFoundException(
+							"No Proxies present into monitoring platforms: be sure to configure it properly or set proxy_configuration=false in monitoring.properties file ");
+			} catch (ZabbixClientException e) {
+				throw handleException(e);
+			}
+		}
+		return proxies;
+	}
+
+	public List<String> getStoredProxyId(InfoType proxyType) {
+		return proxyIdMap.get(proxyType);
+	}
+
+	public List<String> getStoredProxyName(InfoType proxyType) {
+		return proxyNameMap.get(proxyType);
+	}
+
+	public List<Map<String, String>> getStoredProxy(InfoType proxyType) {
+		return proxyMap.get(proxyType);
 	}
 
 }

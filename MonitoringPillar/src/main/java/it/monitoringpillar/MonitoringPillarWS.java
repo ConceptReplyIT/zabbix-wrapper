@@ -7,6 +7,7 @@ import it.prisma.domain.dsl.monitoring.businesslayer.paas.request.HostMonitoring
 import it.prisma.domain.dsl.monitoring.pillar.wrapper.paas.FilterTimeRequest;
 import it.prisma.domain.dsl.monitoring.pillar.zabbix.request.UpdateGroupName;
 
+import javax.naming.NameNotFoundException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -107,14 +108,17 @@ public interface MonitoringPillarWS {
 
 	/************************************
 	 * CREATE HOST INTO IAAS/PAAS PLATFORM
+	 * 
+	 * @throws NameNotFoundException
 	 ************************************/
 	@PUT
 	@Path("/{adapterType}/types/{type}/groups/{group}/hosts/{host}")
 	@Produces(MediaType.APPLICATION_JSON)
 	@Consumes(MediaType.APPLICATION_JSON)
 	public Response createHost(@DefaultValue("zabbix") @PathParam("adapterType") String adapterType,
-			@PathParam("type") String type, @PathParam("group") String group, @PathParam("host") String host,
-			HostMonitoringRequest hostMonitoringRequest) throws MonitoringException;
+
+	@PathParam("type") String type, @PathParam("group") String group, @PathParam("host") String host,
+			HostMonitoringRequest hostMonitoringRequest) throws MonitoringException, NameNotFoundException;
 
 	/***************************************
 	 * DELETE HOST FROM IAAS /PAAS PLATFORM
@@ -203,6 +207,13 @@ public interface MonitoringPillarWS {
 	/***********
 	 * PAAS
 	 ***********/
+	@Path("/{adapterType}/types/{type}/groups/{group}/hosts/{host}/metrics")
+	@GET
+	@Produces(MediaType.APPLICATION_JSON)
+	@Consumes(MediaType.APPLICATION_JSON)
+	public Response getMetricList(@DefaultValue("zabbix") @PathParam("adapterType") String adapterType,
+			@PathParam("type") String type, @PathParam("group") String group, @PathParam("host") String host)
+			throws MonitoringException;
 
 	/*********************************
 	 * SPECIFIC METRIC REQUESTED
@@ -273,4 +284,5 @@ public interface MonitoringPillarWS {
 	public Response getDisableMetric(@DefaultValue("zabbix") @PathParam("adapterType") String adapterType,
 			@PathParam("type") String type, @PathParam("group") String group, @PathParam("host") String host,
 			@PathParam("metric") String metric, @QueryParam("update") String update) throws MonitoringException;
+
 }

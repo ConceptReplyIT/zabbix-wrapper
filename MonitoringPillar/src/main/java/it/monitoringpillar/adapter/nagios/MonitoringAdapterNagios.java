@@ -13,9 +13,11 @@ import it.prisma.domain.dsl.monitoring.pillar.zabbix.response.HostGroupResponse;
 
 import java.util.List;
 
+import javax.ejb.Stateless;
+
 //@Named
-//@Stateless
-//@Local(MonitoringAdapter.class)
+@Stateless
+// @Local(MonitoringAdapter.class)
 @IMonitAdaptNagios
 public class MonitoringAdapterNagios implements MonitoringTarget {
 

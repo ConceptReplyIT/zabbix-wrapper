@@ -17,12 +17,12 @@ import it.prisma.utils.web.ws.rest.restclient.exceptions.RestClientException;
 
 import java.util.List;
 
-import javax.ejb.Stateless;
 import javax.inject.Named;
+import javax.naming.NameNotFoundException;
 
 import org.apache.velocity.exception.ResourceNotFoundException;
 
-@Stateless
+//@Stateless
 @Named
 public interface MonitoringTarget {
 
@@ -108,6 +108,7 @@ public interface MonitoringTarget {
 	 * @param serviceTag
 	 * @param service
 	 * @return
+	 * @throws NameNotFoundException
 	 * @throws MappingException
 	 * @throws NoMappingModelFoundException
 	 * @throws ServerErrorResponseException
@@ -118,7 +119,7 @@ public interface MonitoringTarget {
 
 	public void creationMonitoredHost(String serverType, String hostGroup, String hostName, String vmuuid, String vmip,
 			String serviceCategory, String serviceTag, List<String> service, Boolean activeMode, List<Port> ports)
-			throws MonitoringException;
+			throws MonitoringException, NameNotFoundException;
 
 	/**
 	 * 

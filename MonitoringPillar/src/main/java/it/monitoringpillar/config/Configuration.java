@@ -34,6 +34,8 @@ public class Configuration {
 
 	private Properties macroProperties;
 
+	private Properties zoneProperties;
+
 	public final String varResourceProfilesBasePath = PathHelper
 			.getResourcesPath(ResourceType.CONFIG_ENV_VARIABLE_PROPERTIES_PROFILES);
 
@@ -117,7 +119,7 @@ public class Configuration {
 	/**
 	 * Load properties and Check for Ceilometer Metrics
 	 */
-	public boolean loadMonitoringPropertiesFileAndCheckCeilometerPrperties(String ceilometerMetric) {
+	public boolean loadMonitoringPropertiesFileAndCheckCeilometerProperties(String ceilometerMetric) {
 
 		boolean propertyCeilometerMetricFound = false;
 		try (InputStream in = Configuration.class.getClassLoader().getResourceAsStream(
@@ -270,6 +272,10 @@ public class Configuration {
 		return Boolean.valueOf(monitoringProperties.getProperty(ConfigProperties.PROXY_CONF));
 	}
 
+	public boolean isDistributeProxiesdArchitecture() {
+		return Boolean.valueOf(serviceProperties.getProperty(ConfigProperties.DISTRIB_PROXIES_ARCH));
+	}
+
 	public boolean isCeilometerScriptUsed() {
 		return Boolean.valueOf(monitoringProperties.getProperty(ConfigProperties.CEILOMETER_SCRIPT));
 	}
@@ -279,7 +285,30 @@ public class Configuration {
 	}
 
 	public String getForcedEnvironment() {
+
 		return monitoringProperties.getProperty(ConfigProperties.FORCE_ENVIRONMENT);
+
+	}
+
+	private String getZoneName(String zone) {
+
+		try (InputStream in = Configuration.class.getClassLoader().getResourceAsStream(
+				ConfigProperties.MONITORING_PROPERTY_FILE)) {
+
+			zoneProperties = new Properties();
+			zoneProperties.load(in);
+
+			for (Entry<Object, Object> item : macroProperties.entrySet()) {
+				if (zone.equals(item.getKey())) {
+					return item.getValue().toString();
+				}
+			}
+			throw new Error("No ZONE Contained into Property file or does not match with the listed one");
+
+		} catch (IOException e) {
+			LOG.error("ERROR: Cannot load [" + ConfigProperties.MONITORING_ENVIRONMENT_FILE + "], " + e.getMessage());
+			throw new Error("Cannot load " + ConfigProperties.MONITORING_ENVIRONMENT_FILE);
+		}
 	}
 
 	public static class ConfigProperties {
@@ -301,6 +330,7 @@ public class Configuration {
 		public final static String FORCE_ENVIRONMENT = "force_environment";
 		public final static String WEB_SERVICE_DEBUG = "web_service_debug";
 		public final static String PROXY_CONF = "proxy_configuration";
+		public final static String DISTRIB_PROXIES_ARCH = "distributed_proxies_architecture";
 
 		// The current environment
 		public static String CURRENT_ENVIRONMENT;
@@ -338,4 +368,5 @@ public class Configuration {
 		public final static String AGGREGATED_DISK = "aggrDISK";
 
 	}
+
 }

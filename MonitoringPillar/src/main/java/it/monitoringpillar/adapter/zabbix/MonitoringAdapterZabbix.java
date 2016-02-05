@@ -15,7 +15,6 @@ import it.monitoringpillar.exception.DuplicateResourceMonitoringException;
 import it.monitoringpillar.exception.MonitoringException;
 import it.monitoringpillar.exception.NotFoundMonitoringException;
 import it.monitoringpillar.wrapper.HostsWrapper;
-import it.monitoringpillar.wrapper.WrapperProvider;
 import it.monitoringpillar.wrapper.zabbix.ZabbixEventBean;
 import it.monitoringpillar.wrapper.zabbix.ZabbixGroupBean;
 import it.monitoringpillar.wrapper.zabbix.iaas.WrapperIaaSBean;
@@ -46,9 +45,9 @@ import java.util.Iterator;
 import java.util.List;
 
 import javax.ejb.EJB;
-import javax.ejb.Local;
 import javax.ejb.Stateless;
 import javax.inject.Inject;
+import javax.naming.NameNotFoundException;
 
 /**
  * 
@@ -58,7 +57,7 @@ import javax.inject.Inject;
  */
 @IMonitAdaptZabbix
 @Stateless
-@Local(MonitoringTarget.class)
+// @Local(MonitoringTarget.class)
 public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements MonitoringTarget {
 
 	// private static final Logger LOG =
@@ -77,8 +76,8 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
 	@Inject
 	private WrapperPaasBean wrapperPaas;
 
-	@Inject
-	private WrapperProvider<?> wrapper;
+	// @Inject
+	// private WrapperProvider<?> wrapper;
 
 	@Inject
 	private ZabbixGroupBean groupswrapp;
@@ -200,8 +199,8 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
 				zabAdapClientSetter.createHostGroupService(url, token, hostGroupName,
 						ZabbixMethods.HOSTGROUPCREATE.getzabbixMethod());
 			} catch (DuplicateResourceZabbixException e) {
-				// Se il gruppo esiste già faccio comunque una verifica sugli
-				// altri server ma mi ricordo che esiste!
+				// If the group already exists, keep verifying on other groups
+				// but still recording it exists!
 				isDuplicate = true;
 			}
 
@@ -242,6 +241,7 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
 	 * @param one
 	 *            or more (depending on the type of serviceCategory) atomic
 	 *            service
+	 * @throws NameNotFoundException
 	 * @throws APIErrorException
 	 * @throws NotFoundMonitoringException
 	 * @throws ZabbixAPIErrorException
@@ -255,7 +255,8 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
 	@Override
 	public void creationMonitoredHost(String serverType, String hostGroup, String hostName, String vmuuid, String vmip,
 			String serviceCategory, String serviceTag, List<String> services, Boolean activeMode,
-			List<it.prisma.domain.dsl.monitoring.businesslayer.paas.request.Port> ports) throws MonitoringException {
+			List<it.prisma.domain.dsl.monitoring.businesslayer.paas.request.Port> ports) throws MonitoringException,
+			NameNotFoundException {
 
 		try {
 
@@ -317,18 +318,6 @@ public class MonitoringAdapterZabbix extends MonitoringAdapteeZabbix implements 
 		} catch (ZabbixException e) {
 			throw handleException(e);
 		}
-	}
-
-	/****************
-	 * UPDATE PROXY
-	 * 
-	 * @throws ZabbixException
-	 ****************/
-	@Deprecated
-	private void updateProxy(InfoType proxyType, String hostId) throws ZabbixException {
-
-		zabAdapClientSetter.updateProxyService(proxyType.toString(), zabbixHelper.getStoredProxyId(proxyType), hostId,
-				ZabbixMethods.UPDATEPROXY.getzabbixMethod());
 	}
 
 	/*****************************************************************************

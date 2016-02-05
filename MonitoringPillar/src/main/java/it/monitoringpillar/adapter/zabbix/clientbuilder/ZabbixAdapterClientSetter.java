@@ -59,12 +59,14 @@ import it.prisma.utils.web.ws.rest.restclient.exceptions.RestClientException;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.ejb.TransactionAttribute;
 import javax.ejb.TransactionAttributeType;
 import javax.inject.Inject;
+import javax.naming.NameNotFoundException;
 
 @Stateless
 @TransactionAttribute(TransactionAttributeType.NOT_SUPPORTED)
@@ -91,11 +93,13 @@ public class ZabbixAdapterClientSetter<T> extends ZabbixBase implements Serializ
 	/**
 	 * Gets host's created ID in PrismaMetrics
 	 * 
+	 * @throws NameNotFoundException
+	 * 
 	 * 
 	 */
 	public MonitoringVMCredentialsResponse createHostService(InfoType serverType, String hostGroup, String hostName,
 			String vmuuid, String vmIP, String serviceCategory, String serviceTag, List<String> services,
-			Boolean activeMode, String zabbixMethod, List<Port> ports) throws ZabbixException {
+			Boolean activeMode, String zabbixMethod, List<Port> ports) throws ZabbixException, NameNotFoundException {
 		try {
 			ZabbixAPIClient zabClient = new ZabbixAPIClient(zabbixHelper.getZabbixURL(serverType.toString()));
 
@@ -133,8 +137,35 @@ public class ZabbixAdapterClientSetter<T> extends ZabbixBase implements Serializ
 
 			hostCreationParameters.setHost(hostName);
 
-			if (config.isProxyEnabled())
-				hostCreationParameters.setProxy_hostid(zabbixHelper.getStoredProxyId(serverType));
+			if (config.isProxyEnabled()) {
+				List<Map<String, String>> proxies = zabbixHelper.getStoredProxy(serverType);
+				String proxyId = null;
+				String proxyName = null;
+
+				if (config.isDistributeProxiesdArchitecture()) {
+					proxyName = hostGroup.replace(MonitoringConstant.WG_PREFIX, MonitoringConstant.PROXY_PREFIX);
+					for (Map<String, String> proxy : proxies) {
+						if (proxy.containsKey(proxyName)) {
+							proxyId = proxy.get(proxyName);
+							hostCreationParameters.setProxy_hostid(proxyId);
+							break;
+						}
+					}
+				} else if (!config.isDistributeProxiesdArchitecture()) {
+					proxyName = config.getZabbixProxyName(serverType);
+					for (Map<String, String> proxy : proxies) {
+						if (proxy.containsKey(config.getZabbixProxyName(serverType))) {
+							proxyId = proxy.get(proxyName);
+							hostCreationParameters.setProxy_hostid(proxyId);
+							break;
+						}
+					}
+				}
+				if (proxyId == null)
+					throw new ZabbixException("Monitoring platform " + serverType
+							+ "does not contain the corresponding proxy: " + proxyName);
+
+			}
 
 			ZabbixParamInterfaceIntoHostCreateRequest interfaceParameter = new ZabbixParamInterfaceIntoHostCreateRequest();
 			interfaceParameter.setMain(1);
@@ -339,6 +370,39 @@ public class ZabbixAdapterClientSetter<T> extends ZabbixBase implements Serializ
 			throw handleException(e);
 		}
 	}
+
+	// /********************
+	// * CREATE PROXY
+	// *
+	// * @param url
+	// * @param token
+	// * @param hostGroupNameId
+	// * @param getzabbixMethod
+	// * @throws ZabbixException
+	// */
+	// public ZabbixUpdateProxyResponse createProxyService(String url, String
+	// token, String hostGroupNameId,
+	// String zabbixMethod) throws ZabbixException {
+	// try {
+	// ZabbixAPIClient zabClient = new ZabbixAPIClient(url);
+	// JSONRPCRequest<ZabbixParamCreateProxyRequest> request = new
+	// JSONRPCRequest<>();
+	// ZabbixParamCreateProxyRequest paramRequest = new
+	// ZabbixParamCreateProxyRequest();
+	// request.setJsonrpc(zabbixHelper.getZabbixRPCVersion());
+	// request.setMethod(zabbixMethod);
+	// paramRequest
+	// .setHost(hostGroupNameId.replace(MonitoringConstant.WG_PREFIX,
+	// MonitoringConstant.PROXY_PREFIX));
+	// paramRequest.setStatus(ZabbixConstant.PROXY_ACTIVE_PROP);
+	// request.setParams(paramRequest);
+	// request.setAuth(token);
+	// request.setId(ZabbixConstant.ID);
+	// return zabClient.createProxyClient(request);
+	// } catch (ZabbixClientException e) {
+	// throw handleException(e);
+	// }
+	// }
 
 	/*******************************
 	 * UPDATE HOST/METRIC IN ZABBIX

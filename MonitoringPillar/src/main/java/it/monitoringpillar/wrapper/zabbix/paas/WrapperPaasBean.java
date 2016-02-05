@@ -375,7 +375,7 @@ public class WrapperPaasBean implements Serializable {
 		if (metrics_id != null && config.isCeilometerScriptUsed()
 				&& serverType.equalsIgnoreCase(InfoType.SERVICE.getInfoType())
 				&& metrics_id.toLowerCase().contains(MonitoringConstant.CEILOMETER.toLowerCase())) {
-			if (config.loadMonitoringPropertiesFileAndCheckCeilometerPrperties(metrics_id)) {
+			if (config.loadMonitoringPropertiesFileAndCheckCeilometerProperties(metrics_id)) {
 			} else
 				throw new IllegalArgumentException("Ceilometer Metric " + metrics_id + " does not exist into template");
 		}
