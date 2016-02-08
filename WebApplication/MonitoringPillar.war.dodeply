@@ -1,0 +1,5 @@
+"{\"WFLYCTL0080: Failed services\" => {\"jboss.deployment.unit.\\\"MonitoringPillar.war\\\".WeldStartService\" => \"org.jboss.msc.service.StartException in service jboss.deployment.unit.\\\"MonitoringPillar.war\\\".WeldStartService: Failed to start service
+    Caused by: org.jboss.weld.exceptions.DeploymentException: WELD-001408: Unsatisfied dependencies for type WrapperProvider<Object> with qualifiers @Default
+  at injection point [BackedAnnotatedField] @Inject private it.monitoringpillar.MonitoringPillarWSImpl.wrapper
+  at it.monitoringpillar.MonitoringPillarWSImpl.wrapper(MonitoringPillarWSImpl.java:0)
+\"}}"
