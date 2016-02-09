@@ -21,18 +21,21 @@ To run the Orchestrator you need docker and a MySQL Server on your machine. See 
 1.2 INSTALLING
 --------------
 
-#When having the war at disposal startin from a clean VM with Ubuntu install the docke manager:
+When having the war at disposal startin from a clean VM with Ubuntu install the docke manager:
 ```
 sudo apt-get update
 ```
+```
 sudo apt-get install wget
+```
 ```
 sudo wget -qO- https://get.docker.com/ | sh
 ```
 
-#Install the application server (Wildfly 9.x) right from directory into which there is the docker file for giving the proper instructions and deploy the webapp
+Install the application server (Wildfly 9.x) right from directory into which there is the docker file for giving the proper instructions and deploy the webapp
 ```
 docker build -t indigodatacloud/zabbixwrapper .
+```
 ```
 docker logs -f `sudo docker run --name zabbixwrapper -h zabbixwrapper -p 80:8080 -d indigodatacloud/zabbixwrapper`
 ```
