@@ -1,1 +1,1 @@
-This monitoring pillar has been written in order to expose zabbix RESTful API and to work as adapter for different monitoring products
+This software layer has been written in order to expose Zabbix RESTful API and to work as adapter for different monitoring products
