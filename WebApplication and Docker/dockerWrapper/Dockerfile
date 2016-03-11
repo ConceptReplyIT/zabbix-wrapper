@@ -9,7 +9,7 @@ ENV JBOSS_CONF_FILEPATH $JBOSS_HOME/standalone/configuration/$JBOSS_CONF_FILE
 COPY launch.sh /launch.sh
 
 USER root
-RUN yum update && yum install -y libaio
+RUN yum install -y libaio && yum clean all
 RUN chmod 777 /launch.sh
 USER jboss
 
