@@ -6,6 +6,8 @@ MAINTAINER m.grandolfo@reply.it
 ENV JBOSS_CONF_FILE standalone.xml
 ENV JBOSS_CONF_FILEPATH $JBOSS_HOME/standalone/configuration/$JBOSS_CONF_FILE
 
+COPY /$JBOSS_CONF_FILE /$JBOSS_CONF_FILEPATH
+
 COPY launch.sh /launch.sh
 
 USER root
