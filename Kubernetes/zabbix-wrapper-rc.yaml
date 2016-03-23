@@ -19,3 +19,9 @@ spec:
         imagePullPolicy: Always
         ports:
         - containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /monitoring
+            port: 8080
+          initialDelaySeconds: 180
+          timeoutSeconds: 5
