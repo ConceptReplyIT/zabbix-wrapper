@@ -33,7 +33,7 @@ EXPOSE  3528 \
 		57600
 
 
-ENV WAR_NAME MonitoringPillar
+ENV WAR_NAME MonitoringWrapper
 
 ENTRYPOINT sh /launch.sh
 
