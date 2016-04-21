@@ -1,0 +1,128 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<parent>
+		<groupId>it.reply</groupId>
+		<artifactId>reply-parent-pom</artifactId>
+		<version>1.0.0</version>
+	</parent>
+
+	<artifactId>monitoring-pillar</artifactId>
+	<version>1.8.0-BETA.2</version>
+	<packaging>pom</packaging>
+
+	<name>Monitoring Pillar</name>
+
+	<modules>
+		<module>monitoring-pillar-ws</module>
+		<module>monitoring-pillar-biz</module>
+		<module>monitoring-pillar-domain</module>
+		<module>monitoring-pillar-client</module>
+	</modules>
+
+	<!-- Project Properties -->
+	<properties>
+		<!-- CONVENTIONS: - A version property must be specified in the format 
+			"version.{groupId}", optionally with a suffix to make it unique. - Version 
+			properties must be sorted alphabetically (other form of sorting were found 
+			to be unclear and ambiguous). -->
+
+		<!-- WARNING: Keep in sync with <parent>'s <version> ! -->
+		<version.it.reply>1.0.0</version.it.reply>		
+
+		<version.ejb>3.1</version.ejb>
+	</properties>
+
+	<dependencyManagement>
+		<dependencies>
+
+			<!-- BOMs import -->
+			<dependency>
+				<groupId>it.reply</groupId>
+				<artifactId>reply-bom</artifactId>
+				<type>pom</type>
+				<version>${version.it.reply}</version>
+				<scope>import</scope>
+			</dependency>
+
+			<!-- Define the version of the modules so that we don't need to repeat 
+				ourselves in every module -->
+			<dependency>
+				<groupId>it.reply</groupId>
+				<artifactId>monitoring-pillar-ws</artifactId>
+				<version>${project.version}</version>
+				<type>war</type>
+			</dependency>
+
+			<dependency>
+				<groupId>it.reply</groupId>
+				<artifactId>monitoring-pillar-biz</artifactId>
+				<version>${project.version}</version>
+			</dependency>
+
+			<dependency>
+				<groupId>it.reply</groupId>
+				<artifactId>monitoring-pillar-domain</artifactId>
+				<version>${project.version}</version>
+				<type>jar</type>
+			</dependency>
+
+			<dependency>
+				<groupId>it.reply</groupId>
+				<artifactId>monitoring-pillar-client</artifactId>
+				<version>${project.version}</version>
+				<type>jar</type>
+			</dependency>
+			
+			<!--  Useful for tests -->
+			<dependency>
+	            <groupId>org.jboss.arquillian</groupId>
+	            <artifactId>arquillian-bom</artifactId>
+	            <version>1.1.11.Final</version>
+	            <scope>import</scope>
+	            <type>pom</type>
+	        </dependency>
+	        <dependency>
+	    		<groupId>org.jboss.arquillian.junit</groupId>
+	    		<artifactId>arquillian-junit-container</artifactId>
+	    		<scope>test</scope>
+			</dependency>
+			<dependency>
+				<groupId>org.jboss.arquillian.container</groupId>
+	    			<artifactId>arquillian-weld-ee-embedded-1.1</artifactId>
+	    			<version>1.0.0.CR3</version>
+	    			<scope>test</scope>
+			</dependency>
+			<dependency>
+	    		<groupId>org.jboss.weld</groupId>
+	    			<artifactId>weld-core</artifactId>
+	    			<version>1.1.5.Final</version>
+	    			<scope>test</scope>
+			</dependency>
+			<dependency>
+	    		<groupId>org.slf4j</groupId>
+	    			<artifactId>slf4j-simple</artifactId>
+	    			<version>1.6.4</version>
+	    			<scope>test</scope>
+			</dependency>
+		
+		</dependencies>
+	</dependencyManagement>
+
+	<build>
+		<finalName>${project.artifactId}</finalName>
+
+		<pluginManagement>
+			<plugins>
+				<plugin>
+					<artifactId>maven-ejb-plugin</artifactId>
+					<configuration>
+						<ejbVersion>${version.ejb}</ejbVersion>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+
+</project>
