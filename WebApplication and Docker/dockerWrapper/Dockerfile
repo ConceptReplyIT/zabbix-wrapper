@@ -41,3 +41,4 @@ COPY /$WAR_NAME.war $JBOSS_HOME/standalone/deployments/$WAR_NAME.war.zip
 RUN unzip $JBOSS_HOME/standalone/deployments/$WAR_NAME.war.zip -d $JBOSS_HOME/standalone/deployments/$WAR_NAME.war \
 	&& touch $JBOSS_HOME/standalone/deployments/$WAR_NAME.war.dodeploy \
 	&& rm $JBOSS_HOME/standalone/deployments/$WAR_NAME.war.zip
+COPY /configurations/ $JBOSS_HOME/standalone/deployments/$WAR_NAME.war/WEB-INF/classes/
