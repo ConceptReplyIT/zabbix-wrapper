@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 #IPADDR=$(ip a s | sed -ne '/127.0.0.1/!{s/^[ \t]*inet[ \t]*\([0-9.]\+\)\/.*$/\1/p}')
 ZONE_CONFIG_FILE="$JBOSS_HOME/standalone/deployments/$WAR_NAME.war/WEB-INF/classes/zones.yml"
