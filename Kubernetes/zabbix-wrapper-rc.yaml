@@ -25,3 +25,18 @@ spec:
             port: 8080
           initialDelaySeconds: 180
           timeoutSeconds: 5
+        env:
+          - name: ZABBIX_URL
+            value: http://zabbix-web/api_jsonrpc.php
+          - name: ZABBIX_USERNAME
+            valueFrom:
+              secretKeyRef:
+                name: zabbix-wrapper-secrets
+                key: username
+          - name: ZABBIX_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: zabbix-wrapper-secrets
+                key: password
+        
+         
