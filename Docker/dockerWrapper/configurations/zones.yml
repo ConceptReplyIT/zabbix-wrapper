@@ -8,7 +8,7 @@ zones:
     servers:
     # Omit not used servers
     
-      - type: service
+      - type: infrastructure
         url: {$url}
         username: {$usr}
         password: {$password}
