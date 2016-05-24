@@ -8,13 +8,13 @@ zones:
     servers:
     # Omit not used servers
     
-      - type: infrastructure
-        url: {$url}
-        username: {$usr}
-        password: {$password}
-        proxy:
-          name: 
-          nameTemplate: proxy-%s
+    - type: infrastructure
+      url: {$url}
+      username: {$usr}
+      password: {$password}
+      proxy:
+        name: 
+        nameTemplate: proxy-%s
 
 
 
