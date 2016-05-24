@@ -1,4 +1,4 @@
-FROM  jboss/wildfly:8.1.0.Final 
+FROM  jboss/wildfly:8.2.0.Final
 
 MAINTAINER m.grandolfo@reply.it
 
