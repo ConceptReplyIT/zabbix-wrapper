@@ -29,13 +29,21 @@
 			to be unclear and ambiguous). -->
 
 		<!-- WARNING: Keep in sync with <parent>'s <version> ! -->
-		<version.it.reply>1.0.0-SNAPSHOT</version.it.reply>
+		<version.it.reply>1.0.0</version.it.reply>
 
 		<version.ejb>3.1</version.ejb>
 		<version.arquillian>1.1.11.Final</version.arquillian>
 		<checkstyle-plugin.version>2.17</checkstyle-plugin.version>
 		<surefire.skip>false</surefire.skip>
 	</properties>
+
+	<repositories>
+			<repository>
+				<id>concept-reply-nexus-repository</id>
+				<name>Concept Reply Nexus</name>
+				<url>http://nexusconcept.cloud.reply.eu/content/groups/public</url>
+			</repository>
+	</repositories>
 
 	<dependencyManagement>
 		<dependencies>
